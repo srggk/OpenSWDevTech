@@ -12,7 +12,7 @@
 
     <div class="row justify-content-center">
         <div class="col-12">
-            <form action="/search" method="post" enctype="multipart/form-data">
+            <form action="/" method="get" enctype="multipart/form-data">
                 <div class="input-group mb-3 mt-5">
                     <input type="text" name="search_string" value="{{ search_string }}" class="form-control"
                         placeholder="Enter the name of the Pokemon to search...">
@@ -43,20 +43,20 @@
             <ul class="pagination justify-content-between mt-3">
                 {% if current > 1 %}
                     <li class="page-item col-1">
-                        <a class="page-link d-flex justify-content-center" href="/?page={{current - 1}}">Back</a>
+                        <a class="page-link d-flex justify-content-center text-dark" href="/?page={{current - 1}}">Back</a>
                     </li>
                 {% else %}
-                    <div class="page-item d-flex justify-content-center align-items-center border col-1 text-secondary">Back</div>
+                    <div class="page-item d-flex justify-content-center align-items-center border col-1 text-secondary rounded-start">Back</div>
                 {% endif %}
                 
                 <li class="page-item d-flex justify-content-center align-items-center col-10 border">Page {{current}} in {{end}}</li>
                 
                 {% if end > current %}
                     <li class="page-item col-1">
-                        <a class="page-link d-flex justify-content-center" href="/?page={{current + 1}}">Next</a>
+                        <a class="page-link d-flex justify-content-center text-dark" href="/?page={{current + 1}}">Next</a>
                     </li>
                 {% else %}
-                    <div class="page-item d-flex justify-content-center align-items-center border col-1 text-secondary">Next</div>
+                    <div class="page-item d-flex justify-content-center align-items-center border col-1 text-secondary rounded-end">Next</div>
                 {% endif %}
             </ul>
         {% endif %}
