@@ -14,7 +14,8 @@
         <div class="col-12">
             <form action="/search" method="post" enctype="multipart/form-data">
                 <div class="input-group mb-3 mt-5">
-                    <input type="text" name="search_string" value="{{ search_string }}" class="form-control" placeholder="Enter the name of the Pokemon to search...">
+                    <input type="text" name="search_string" value="{{ search_string }}" class="form-control"
+                        placeholder="Enter the name of the Pokemon to search...">
                     <button class="btn btn-outline-dark" type="submit">Search</button>
                 </div>
             </form>
@@ -24,18 +25,42 @@
     <div class="row justify-content-center">
         <div class="col-12">
             {% if pokemons == [] %}
-                <ul class="list-group">
-                    <li class="list-group-item">Not found</li>
-                </ul>
+            <ul class="list-group">
+                <li class="list-group-item">Not found</li>
+            </ul>
             {% else %}
-                <ul class="list-group">
-                    {% for poke in pokemons %}
-                        <li class="list-group-item">{{poke}}</li>
-                    {% endfor %}
-                </ul>
+            <ul class="list-group">
+                {% for poke in pokemons %}
+                <li class="list-group-item">{{poke}}</li>
+                {% endfor %}
+            </ul>
             {% endif %}
         </div>
     </div>
+
+    <nav class="mb-5">
+        {% if end > 1 %}
+            <ul class="pagination justify-content-between mt-3">
+                {% if current > 1 %}
+                    <li class="page-item col-1">
+                        <a class="page-link d-flex justify-content-center" href="/?page={{current - 1}}">Back</a>
+                    </li>
+                {% else %}
+                    <div class="page-item d-flex justify-content-center align-items-center border col-1 text-secondary">Back</div>
+                {% endif %}
+                
+                <li class="page-item d-flex justify-content-center align-items-center col-10 border">Page {{current}} in {{end}}</li>
+                
+                {% if end > current %}
+                    <li class="page-item col-1">
+                        <a class="page-link d-flex justify-content-center" href="/?page={{current + 1}}">Next</a>
+                    </li>
+                {% else %}
+                    <div class="page-item d-flex justify-content-center align-items-center border col-1 text-secondary">Next</div>
+                {% endif %}
+            </ul>
+        {% endif %}
+    </nav>
 </div>
 
 {% endblock %}
