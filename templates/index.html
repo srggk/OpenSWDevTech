@@ -5,15 +5,17 @@
 
 <div class="container">
     <div class="row justify-content-center">
-        <div class="col-3 mt-5">
-            <img src="../static/images/pokemon.svg" alt="PokemonLogo">
+        <div class="col-3 mt-5 mb-5">
+            <a href="/">
+                <img src="../static/images/pokemon.svg" alt="PokemonLogo">
+            </a>
         </div>
     </div>
 
     <div class="row justify-content-center">
         <div class="col-12">
             <form action="/" method="get" enctype="multipart/form-data">
-                <div class="input-group mb-3 mt-5">
+                <div class="input-group mb-3">
                     <input type="text" name="search_string" value="{{ search_string }}" class="form-control"
                         placeholder="Enter the name of the Pokemon to search...">
                     <button class="btn btn-outline-dark" type="submit">Search</button>
@@ -23,17 +25,31 @@
     </div>
 
     <div class="row justify-content-center">
-        <div class="col-12">
+        <div class="row row-cols-5 col-12">
             {% if pokemons == [] %}
-            <ul class="list-group">
-                <li class="list-group-item">Not found</li>
-            </ul>
+                <ul class="list-group">
+                    <li class="list-group-item d-flex justify-content-center">
+                        <h2 class="mb-5 mt-5">Not found</h2>
+                    </li>
+                </ul>
             {% else %}
-            <ul class="list-group">
                 {% for poke in pokemons %}
-                <li class="list-group-item">{{poke}}</li>
+                    <div class="card">
+                        <div class="card-img-top">
+                            <img src="{{poke.image}}" alt="{{poke.name}}" height="100px"/>
+                        </div>
+                        
+                        <div class="card-body">
+                            <h5 class="card-title">{{poke.name}}</h5>
+                            <p class="card-text">hp: {{poke.hp}}<br/>attack: {{poke.attack}}</p>
+                            <form class="col-12" action="{{url_for('battle')}}" method="post" enctype="multipart/form-data">
+                                <input type="hidden" name="select_poke" value="{{poke.name}}">
+                                <button class="col-12 btn btn-secondary" type="submit">To battle</button>
+                            </form>
+                            <a href="{{url_for('poke_page', poke_name=poke.name)}}" class="col-12 mt-1 mb-2 btn btn-outline-secondary">More about poke</a>
+                        </div>
+                    </div>
                 {% endfor %}
-            </ul>
             {% endif %}
         </div>
     </div>
@@ -43,7 +59,7 @@
             <ul class="pagination justify-content-between mt-3">
                 {% if current > 1 %}
                     <li class="page-item col-1">
-                        <a class="page-link d-flex justify-content-center text-dark" href="/?page={{current - 1}}">Back</a>
+                        <a class="page-link d-flex justify-content-center text-dark" href="/?page={{current - 1}}&search_string={{search_string}}">Back</a>
                     </li>
                 {% else %}
                     <div class="page-item d-flex justify-content-center align-items-center border col-1 text-secondary rounded-start">Back</div>
@@ -53,7 +69,7 @@
                 
                 {% if end > current %}
                     <li class="page-item col-1">
-                        <a class="page-link d-flex justify-content-center text-dark" href="/?page={{current + 1}}">Next</a>
+                        <a class="page-link d-flex justify-content-center text-dark" href="/?page={{current + 1}}&search_string={{search_string}}">Next</a>
                     </li>
                 {% else %}
                     <div class="page-item d-flex justify-content-center align-items-center border col-1 text-secondary rounded-end">Next</div>

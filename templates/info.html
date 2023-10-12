@@ -1,0 +1,41 @@
+{% extends 'app.html' %}
+
+{% block content %}
+{{ super() }}
+
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-3 mt-5 mb-5">
+            <a href="/">
+                <img src="../static/images/pokemon.svg" alt="PokemonLogo">
+            </a>
+        </div>
+    </div>
+
+    <div class="card col-12">
+        <div class="card-img-top col-6 d-flex justify-content-center">
+            <img src="{{poke.image}}" class="" alt="{{poke.name}}" height="150px">
+        </div>
+
+        <div class="card-body">
+            <h5 class="card-title d-flex justify-content-center">{{poke.name}}</h5>
+            <p class="card-text col-12 d-flex flex-column align-items-center">
+                <span>hp: {{poke.hp}}</span>
+                <span>attack: {{poke.attack}}</span>
+                <span>defense: {{poke.defense}}</span>
+                <span>special-attack: {{poke.special_attack}}</span>
+                <span>special-defense: {{poke.special_defense}}</span>
+                <span>speed: {{poke.speed}}</span>
+            </p>
+        </div>
+      </div>
+
+    <form class="col-12 mt-3" action="{{url_for('battle')}}" method="post" enctype="multipart/form-data">
+        <input type="hidden" name="select_poke" value="{{poke.name}}">
+        <button class="col-12 btn btn-secondary" type="submit">To battle</button>
+    </form>
+    
+    <a href="" class="col-12 mt-2 btn btn-outline-secondary">See result of battles</a>
+</div>
+
+{% endblock %}

@@ -1,0 +1,18 @@
+{% extends 'app.html' %}
+
+{% block content %}
+{{ super() }}
+
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-3 mt-5 mb-5">
+            <a href="/">
+                <img src="../static/images/pokemon.svg" alt="PokemonLogo">
+            </a>
+        </div>
+    </div>
+
+    <h5>{{select_poke}}</h5>
+</div>
+
+{% endblock %}
