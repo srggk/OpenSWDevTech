@@ -1,0 +1,44 @@
+{% extends 'app.html' %}
+
+{% block content %}
+{{ super() }}
+
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-3 mt-5 mb-5">
+            <a href="/">
+                <img src="../static/images/pokemon.svg" alt="PokemonLogo">
+            </a>
+        </div>
+    </div>
+    
+    <div class="col-12 d-flex justify-content-center align-items-center border rounded mb-3">
+        <h3 class="mt-2 mb-2">Result of Poke Battles</h3>
+    </div>
+
+    <div class="border rounded p-2 ps-3 pe-3">
+
+        <table class="table">
+            <thead>
+              <tr>
+                <th scope="col">#</th>
+                <th scope="col">Your poke</th>
+                <th scope="col">Opponent poke</th>
+                <th scope="col">You won</th>
+              </tr>
+            </thead>
+            <tbody>
+                {% for bttl in battles %}
+                    <tr>
+                        <th>{{bttl.id}}</th>
+                        <td>{{bttl.select_poke}}</td>
+                        <td>{{bttl.opponent_poke}}</td>
+                        <td>{{bttl.select_is_win}}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+          </table>
+    </div>
+</div>
+
+{% endblock %}

@@ -12,7 +12,108 @@
         </div>
     </div>
 
-    <h5>{{select_poke}}</h5>
+    <div class="col-12 d-flex justify-content-center align-items-center border rounded mb-3">
+        <h3 class="mt-2 mb-2">Poke Battle</h3>
+    </div>
+
+    <div class="col-12 d-flex justify-content-between">
+        <div class="card col-4 p-0">
+            <div class="card-header d-flex justify-content-center">You poke</div>
+            <div class="card-body">
+                <h4 class="card-title d-flex justify-content-center mt-3">{{select_poke.name}}</h4>
+
+                <div class="card-img-top d-flex justify-content-center">
+                    {% if winner and winner.name != select_poke.name %}
+                        <img src="{{select_poke.image}}" class="" style="transform: rotate(180deg);" alt="{{select_poke.name}}" height="150px">
+                    {% else %}
+                        <img src="{{select_poke.image}}" class="" alt="{{select_poke.name}}" height="150px">
+                    {% endif %}
+                </div>
+
+                <p class="card-text col-12 d-flex flex-column align-items-center">
+                    <span>hp: {{select_poke.hp}}</span>
+                    <span>attack: {{select_poke.attack}}</span>
+                </p>
+                
+                {% if not winner %}
+                    {% if round_result == True or round_result == False %}
+                        <div class="input-group col-6">
+                            <input type="text" name="select_number" class="form-control" value="Selected number: {{session['select_number']}}" disabled>
+                        </div>
+                    {% else %}
+                        <form action="{{url_for('battle_round')}}" method="post" enctype="multipart/form-data">
+                            <div class="input-group col-6">
+                                <input type="text" name="select_number" class="form-control"
+                                    placeholder="Enter num from 1 to 10...">
+                                <button class="btn btn-outline-dark" type="submit">Enter</button>
+                            </div>
+                        </form>
+                    {% endif %}
+                {% endif %}
+            </div>
+            <div class="card-footer d-flex justify-content-center">
+                <h5 class="mt-3 mb-3">NOW HP: {{session['select_poke_hp']}}</h5>
+            </div>
+        </div>
+
+        <div class="card col-3 p-0">
+            <div class="card-header d-flex justify-content-center">VS</div>
+
+            <div class="card-body d-flex flex-column justify-content-center">
+                <h5 class="card-text col-12 d-flex justify-content-center">
+                    {% if round_result == True or round_result == False %}
+                        {% if round_result %}
+                            {{select_poke.name}} attacks
+                        {% else %}
+                            {{opponent_poke.name}} attacks
+                        {% endif %}
+
+                    {% elif winner %}
+                        {{winner.name}} is win!
+
+                    {% endif %}
+                </h5>
+                {% if winner %}
+                    <a class="" href="/battle/finish">
+                        <button class="btn btn-outline-dark col-12">finish round</button>
+                    </a>
+                {% elif round_result == True or round_result == False %}
+                    <a class="" href="/battle/next-round">
+                        <button class="btn btn-outline-dark col-12">go ahead</button>
+                    </a>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="card col-4 p-0">
+            <div class="card-header d-flex justify-content-center">Opponent poke</div>
+            <div class="card-body">
+                <h4 class="card-title d-flex justify-content-center mt-3">{{opponent_poke.name}}</h4>
+
+                <div class="card-img-top d-flex justify-content-center">
+                    {% if winner and winner.name != opponent_poke.name %}
+                        <img src="{{opponent_poke.image}}" class="" style="transform: rotate(180deg);" alt="{{opponent_poke.name}}" height="150px">
+                    {% else %}
+                        <img src="{{opponent_poke.image}}" class="" alt="{{opponent_poke.name}}" height="150px">
+                    {% endif %}
+                </div>
+
+                <p class="card-text col-12 d-flex flex-column align-items-center">
+                    <span>hp: {{opponent_poke.hp}}</span>
+                    <span>attack: {{opponent_poke.attack}}</span>
+                </p>
+                {% if not winner %}
+                    <div class="input-group col-6">
+                        <input type="text" name="user_number" class="form-control" value="Random number: {{session['opponent_number']}}" disabled>
+                    </div>
+                {% endif %}
+            </div>
+            <div class="card-footer d-flex justify-content-center">
+                <h5 class="mt-3 mb-3">NOW HP: {{session['opponent_poke_hp']}}</h5>
+            </div>
+        </div>
+            
+    </div>
 </div>
 
 {% endblock %}

@@ -18,7 +18,7 @@
         </div>
 
         <div class="card-body">
-            <h5 class="card-title d-flex justify-content-center">{{poke.name}}</h5>
+            <h4 class="card-title d-flex justify-content-center">{{poke.name}}</h4>
             <p class="card-text col-12 d-flex flex-column align-items-center">
                 <span>hp: {{poke.hp}}</span>
                 <span>attack: {{poke.attack}}</span>
@@ -31,11 +31,11 @@
       </div>
 
     <form class="col-12 mt-3" action="{{url_for('battle')}}" method="post" enctype="multipart/form-data">
-        <input type="hidden" name="select_poke" value="{{poke.name}}">
+        <input type="hidden" name="select_poke_name" value="{{poke.name}}">
         <button class="col-12 btn btn-secondary" type="submit">To battle</button>
     </form>
     
-    <a href="" class="col-12 mt-2 btn btn-outline-secondary">See result of battles</a>
+    <a href="/result-battes" class="col-12 mt-2 btn btn-outline-secondary">See result of battles</a>
 </div>
 
 {% endblock %}

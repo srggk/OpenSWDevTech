@@ -25,14 +25,16 @@
     </div>
 
     <div class="row justify-content-center">
-        <div class="row row-cols-5 col-12">
-            {% if pokemons == [] %}
-                <ul class="list-group">
-                    <li class="list-group-item d-flex justify-content-center">
-                        <h2 class="mb-5 mt-5">Not found</h2>
-                    </li>
-                </ul>
-            {% else %}
+        {% if pokemons == [] %}
+            <div class="row col-12">
+                <div class="card">
+                    <div class="card-body">
+                        <h2 class="d-flex justify-content-center mt-3 mb-3">Not found</h2>
+                    </div>
+                </div>
+            </div>
+        {% else %}
+            <div class="row row-cols-5 col-12">
                 {% for poke in pokemons %}
                     <div class="card">
                         <div class="card-img-top">
@@ -43,15 +45,15 @@
                             <h5 class="card-title">{{poke.name}}</h5>
                             <p class="card-text">hp: {{poke.hp}}<br/>attack: {{poke.attack}}</p>
                             <form class="col-12" action="{{url_for('battle')}}" method="post" enctype="multipart/form-data">
-                                <input type="hidden" name="select_poke" value="{{poke.name}}">
+                                <input type="hidden" name="select_poke_name" value="{{poke.name}}">
                                 <button class="col-12 btn btn-secondary" type="submit">To battle</button>
                             </form>
                             <a href="{{url_for('poke_page', poke_name=poke.name)}}" class="col-12 mt-1 mb-2 btn btn-outline-secondary">More about poke</a>
                         </div>
                     </div>
                 {% endfor %}
-            {% endif %}
-        </div>
+            </div>
+        {% endif %}
     </div>
 
     <nav class="mb-5">
