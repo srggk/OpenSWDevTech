@@ -128,7 +128,8 @@ def battle_round():
                     try:
                         battle = Battle(select_poke=session['select_poke_id'],
                                         opponent_poke=session['opponent_poke_id'],
-                                        select_is_win=winner == session['select_poke_id'])
+                                        select_is_win=winner == session['select_poke_id'],
+                                        quanity_rounds=len(session['history']))
                         db.session.add(battle)
                         db.session.commit()
                     except Exception:
@@ -170,7 +171,7 @@ def fast_battle():
 @app.route('/result-battes')
 def result_battes():
     try:
-        all_battles = Battle.query.all()
+        all_battles = Battle.query.order_by(Battle.created_at.desc()).all()
         return render_template('results.html',
                                 battles=all_battles)
     except:
