@@ -1,0 +1,22 @@
+<div class="modal fade" id="modalBattle" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="modalBattleLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h1 class="modal-title fs-5" id="modalBattleLabel">Starting Fast Poke Battle</h1>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Закрыть"></button>
+        </div>
+        <div class="modal-body">
+          <p>Do you want to receive the results of the battle by email?<br/>It will be sent when the round is completed. If not, leave the field empty:</p>
+          <form action="{{url_for('fast_battle')}}" method="post" enctype="multipart/form-data">
+            <div class="input-group">
+                <input type="email" name="res_battle_email" class="form-control" placeholder="example@domain.com">
+                <button class="btn btn-outline-dark" type="submit">Enter</button>
+            </div>
+        </form>
+        </div>
+        <div class="modal-footer">
+          <p class="text-secondary">It may take some time for the email to be sent. We recommend checking your Spam folder.</p>
+        </div>
+      </div>
+    </div>
+  </div>
