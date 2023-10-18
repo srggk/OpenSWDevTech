@@ -157,6 +157,14 @@ def is_valid_email(email):
     return True if re.fullmatch(regex, email) else False
 
 
+def results_battle_to_string(select_poke, opponent_poke, rounds, winner):
+    res = f'\nBATTLE {select_poke["name"]} VS {opponent_poke["name"]}\nRESULT: {select_poke["name"] if winner == select_poke["id"] else opponent_poke["name"]} wins.\n\nROUNDS:'
+    for i, round in enumerate(rounds):
+        round_winner = select_poke["name"] if round['winner_id'] == select_poke["id"] else opponent_poke["name"]
+        res += f'\n\n#{i+1}: WIN {round_winner}\nY-N={round["select_number"]}   Y-HP={round["select_poke_hp"]}   O-N={round["opponent_number"]}   O-HP={round["opponent_poke_hp"]}'
+    return res + '\n\n'
+
+
 @app.route('/battle/fast', methods=['GET', 'POST'])
 def fast_battle():
     if request.method == 'POST':
@@ -197,7 +205,12 @@ def fast_battle():
                 # send result to email if need
                 if 'res_battle_email' in request.form and is_valid_email(request.form['res_battle_email']):
                     email = request.form['res_battle_email']
-                    # send_email logic
+                    battle_result = results_battle_to_string(select_poke=select_poke_info,
+                                                             opponent_poke=opponent_poke_info,
+                                                             rounds=rounds,
+                                                             winner=winner)
+                    send_email(to_email=email,
+                               results=battle_result.replace('\n', '<br/>'))
 
                 return render_template('battle.html',
                             select_poke=select_poke_info, 
