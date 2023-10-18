@@ -167,4 +167,61 @@ def api_fight_round(select_number):
 
 @api.route('/api/v1/fight/fast', methods=['GET'])
 def api_fight_fast():
-    return make_response({'error': 'Not Found'}, 404)
+    select_poke_id = request.args.get('select_poke_id')
+    opponent_poke_id = request.args.get('opponent_poke_id')
+    if select_poke_id and select_poke_id.isdigit() and opponent_poke_id and opponent_poke_id.isdigit():
+        select_poke_info = api_pokemon_from_id(select_poke_id).json if api_pokemon_from_id(select_poke_id).status_code == 200 else None
+        opponent_poke_info = api_pokemon_from_id(opponent_poke_id).json if api_pokemon_from_id(opponent_poke_id).status_code == 200 else None
+        
+        if select_poke_info and opponent_poke_info:
+            select_poke_hp = select_poke_info['hp']
+            opponent_poke_hp = opponent_poke_info['hp']
+            rounds = []
+
+            # start new rounds until a winner is found
+            while select_poke_hp > 0 and opponent_poke_hp > 0:
+                select_number = random.randint(1, 10)
+                url = f'{request.host_url}/api/v1/fight/{select_number}'
+                response = requests.post(url, json={
+                    'select_poke': {
+                        'id': select_poke_info['id'],
+                        'hp': select_poke_hp,
+                        'attack': select_poke_info['attack'],
+                    },
+                    'opponent_poke': {
+                        'id': opponent_poke_info['id'],
+                        'hp': opponent_poke_hp,
+                        'attack': opponent_poke_info['attack'],
+                    },
+                })
+                
+                if response.status_code == 200:
+                    select_poke_hp = response.json()['select_poke']['hp']
+                    opponent_poke_hp = response.json()['opponent_poke']['hp']
+                    winner = response.json()['winner']
+                    rounds.append(response.json()['round'])
+                else:
+                    return make_response({'error': 'Service Unavailable'}, 503)
+
+                if winner:
+                    break
+        
+            result = {
+                'select_poke': {
+                    'id': select_poke_info['id'],
+                    'hp': select_poke_hp,
+                    'attack': select_poke_info['attack'],
+                },
+                'opponent_poke': {
+                    'id': opponent_poke_info['id'],
+                    'hp': opponent_poke_hp,
+                    'attack': opponent_poke_info['attack'],
+                },
+                'rounds': rounds,
+                'winner': winner,
+            }
+            return make_response(result, 200)  
+        else:
+            return make_response({'error': 'Not Found'}, 404)
+    else:
+        return make_response({'error': 'Bad Request'}, 400)

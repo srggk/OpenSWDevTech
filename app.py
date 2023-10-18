@@ -160,11 +160,52 @@ def is_valid_email(email):
 @app.route('/battle/fast', methods=['GET', 'POST'])
 def fast_battle():
     if request.method == 'POST':
-        if 'res_battle_email' in request.form and is_valid_email(request.form['res_battle_email']):
-            email = request.form['res_battle_email']
-            abort(404)
-        else:
-            abort(404)
+        if 'select_poke_id' in session and 'opponent_poke_id' in session:
+
+            # someone has already won, there are no more rounds
+            if session['select_poke_hp'] <= 0 or session['opponent_poke_hp'] <= 0:
+                return redirect(url_for('poke'))
+
+            # get info about select & opponent poke
+            response = requests.get(f'{request.host_url}/api/v1/fight?select_poke_id={session["select_poke_id"]}&opponent_poke_id={session["opponent_poke_id"]}')
+            if response.status_code == 200:
+                select_poke_info = response.json()['select_poke']
+                opponent_poke_info = response.json()['opponent_poke']
+            else:
+                abort(503)
+
+            # get result of the battle (fast)
+            response = requests.get(f'{request.host_url}/api/v1/fight/fast?select_poke_id={session["select_poke_id"]}&opponent_poke_id={session["opponent_poke_id"]}')
+            if response.status_code == 200:
+                session['select_poke_hp'] = response.json()['select_poke']['hp']
+                session['opponent_poke_hp'] = response.json()['opponent_poke']['hp']
+                rounds = response.json()['rounds']
+                winner = response.json()['winner']
+                
+                # record result of the battle to db
+                try:
+                    battle = Battle(select_poke=session['select_poke_id'],
+                                    opponent_poke=session['opponent_poke_id'],
+                                    select_is_win=winner == session['select_poke_id'],
+                                    quanity_rounds=len(rounds))
+                    db.session.add(battle)
+                    db.session.commit()
+                except Exception:
+                    print("ERROR DB: Battle failed to add")
+                    db.session.rollback()
+                
+                # send result to email if need
+                if 'res_battle_email' in request.form and is_valid_email(request.form['res_battle_email']):
+                    email = request.form['res_battle_email']
+                    # send_email logic
+
+                return render_template('battle.html',
+                            select_poke=select_poke_info, 
+                            opponent_poke=opponent_poke_info,
+                            rounds_result=rounds,
+                            winner=winner)
+            else:
+                abort(503)
     return redirect(url_for('poke'))
 
 
