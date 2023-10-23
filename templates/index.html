@@ -45,7 +45,7 @@
                             <h5 class="card-title">{{poke.name}}</h5>
                             <p class="card-text">hp: {{poke.hp}}<br/>attack: {{poke.attack}}</p>
                             <form class="col-12" action="{{url_for('battle')}}" method="post" enctype="multipart/form-data">
-                                <input type="hidden" name="select_poke_name" value="{{poke.name}}">
+                                <input type="hidden" name="select_poke_id" value="{{poke.id}}">
                                 <button class="col-12 btn btn-secondary" type="submit">To battle</button>
                             </form>
                             <a href="{{url_for('poke_page', poke_name=poke.name)}}" class="col-12 mt-1 mb-2 btn btn-outline-secondary">More about poke</a>
