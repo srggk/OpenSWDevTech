@@ -3,7 +3,7 @@
 {% block content %}
 {{ super() }}
 
-<div class="container">
+<div class="container mb-5">
     <div class="row justify-content-center">
         <div class="col-3 mt-5 mb-5">
             <a href="/">
@@ -12,30 +12,67 @@
         </div>
     </div>
 
-    <div class="card col-12">
-        <div class="card-img-top col-6 d-flex justify-content-center">
-            <img src="{{poke.image}}" class="" alt="{{poke.name}}" height="150px">
+    <div class="col-12 d-flex justify-content-center align-items-center border rounded mb-3">
+        <h3 class="mt-2 mb-2">Detailed information about Poke</h3>
+    </div>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                {% if category == "error" %}
+                    <div class="alert alert-danger" role="alert">
+                        {{message}}
+                    </div>
+                {% elif category == "info" %}
+                    <div class="alert alert-success" role="alert">
+                        {{message}}
+                    </div>
+                {% endif %}
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    <div class="card-group col-12 d-flex justify-content-between">
+        <div class="card col-6">
+            <div class="card-img-top col-6 d-flex justify-content-center">
+                <img src="{{poke.image}}" class="" alt="{{poke.name}}" height="150px">
+            </div>
+
+            <div class="card-body">
+                <h4 class="card-title d-flex justify-content-center">{{poke.name}}</h4>
+                <p class="card-text col-12 d-flex flex-column align-items-center">
+                    <span>hp: {{poke.hp}}</span>
+                    <span>attack: {{poke.attack}}</span>
+                    <span>defense: {{poke.defense}}</span>
+                    <span>special-attack: {{poke.special_attack}}</span>
+                    <span>special-defense: {{poke.special_defense}}</span>
+                    <span>speed: {{poke.speed}}</span>
+                </p>
+
+                <form class="col-12 mt-2" action="{{url_for('poke_page_save')}}" method="post" enctype="multipart/form-data">
+                    <input type="hidden" name="poke_id" value="{{poke.id}}">
+                    <button class="col-12 btn btn-outline-secondary" type="submit">Save info about poke to file</button>
+                </form>
+            </div>
         </div>
 
-        <div class="card-body">
-            <h4 class="card-title d-flex justify-content-center">{{poke.name}}</h4>
-            <p class="card-text col-12 d-flex flex-column align-items-center">
-                <span>hp: {{poke.hp}}</span>
-                <span>attack: {{poke.attack}}</span>
-                <span>defense: {{poke.defense}}</span>
-                <span>special-attack: {{poke.special_attack}}</span>
-                <span>special-defense: {{poke.special_defense}}</span>
-                <span>speed: {{poke.speed}}</span>
-            </p>
+        <div class="card col-6">
+            <div class="card-body d-flex flex-column justify-content-between">
+                <div class="mt-2">
+                    <h5 class="text-center">Arrange a battle? You're playing for {{poke.name}}</h5>
+                    <p class="text-center">You can arrange a battle with another Pokemon, which we will choose randomly. Would you like to try it?</p>
+                    <form class="col-12 mt-1" action="{{url_for('battle')}}" method="post" enctype="multipart/form-data">
+                        <input type="hidden" name="select_poke_id" value="{{poke.id}}">
+                        <button class="col-12 btn btn-secondary" type="submit">To battle</button>
+                    </form>
+                </div>
+                <div>
+                    <p class="text-center">You can find the results of all battles here</p>
+                    <a href="/result-battes" class="col-12 btn btn-outline-secondary">See result of battles</a> 
+                </div>
+            </div>
         </div>
-      </div>
-
-    <form class="col-12 mt-3" action="{{url_for('battle')}}" method="post" enctype="multipart/form-data">
-        <input type="hidden" name="select_poke_id" value="{{poke.id}}">
-        <button class="col-12 btn btn-secondary" type="submit">To battle</button>
-    </form>
-    
-    <a href="/result-battes" class="col-12 mt-2 btn btn-outline-secondary">See result of battles</a>
+    </div>
 </div>
 
 {% endblock %}
