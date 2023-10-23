@@ -1,7 +1,7 @@
 from db import *
 from api import api
 from send_email import send_email
-from flask import Flask, render_template, request, redirect, url_for, session, abort
+from flask import Flask, render_template, request, redirect, url_for, session, abort, flash
 import requests
 import json
 import re
@@ -45,6 +45,21 @@ def poke_page(poke_name):
         return render_template('info.html', poke=response.json())
     else:
         abort(404)
+
+
+@app.route('/poke/save', methods=['GET', 'POST'])
+def poke_page_save():
+    if request.method == 'POST' and 'poke_id' in request.form:
+        poke_id = request.form['poke_id']
+        if poke_id.isdigit():
+            response = requests.post(f'{request.host_url}/api/v1/pokemon/save/{poke_id}')
+            if response.status_code == 201:
+                flash('File with info about Poke was successfully generated and saved.', 'info')
+                return redirect(url_for('poke_page', poke_name=response.json()['poke_name']))
+            elif response.status_code == 503:
+                flash('File with info about Poke was not generated and saved.', 'error')
+                return redirect(url_for('poke_page', poke_name=response.json()['poke_name']))
+    return redirect(url_for('poke'))
 
 
 @app.route('/battle', methods=['GET', 'POST'])
