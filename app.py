@@ -2,6 +2,8 @@ from db import *
 from api import api
 from send_email import send_email
 from flask import Flask, render_template, request, redirect, url_for, session, abort, flash
+from flask_caching import Cache
+import redis
 import requests
 import json
 import re
@@ -15,9 +17,19 @@ with open('config.json', 'r') as file:
     data=file.read()
 configs = json.loads(data)
 app.config['SECRET_KEY'] = configs['SECRET_KEY']
+app.config['CACHE_TYPE'] = configs['CACHE_TYPE']
+app.config['CACHE_REDIS_HOST'] = configs['CACHE_REDIS_HOST']
+app.config['CACHE_REDIS_PORT'] = configs['CACHE_REDIS_PORT']
+app.config['CACHE_REDIS_DB'] = configs['CACHE_REDIS_DB']
+cache = Cache(app=app)
+cache.init_app(app)
+redis_client = redis.Redis(host=configs['CACHE_REDIS_HOST'],
+                           port=configs['CACHE_REDIS_PORT'],
+                           db=configs['CACHE_REDIS_DB'])
 
 
 @app.route('/')
+@cache.cached(timeout=60, key_prefix='pokes', query_string=True)
 def poke():
     page = request.args.get('page')
     page = int(page) if page and page.isdigit() else 1
@@ -39,6 +51,7 @@ def poke():
 
 
 @app.route('/poke/<string:poke_name>')
+@cache.cached(timeout=60, key_prefix='poke_info', query_string=True)
 def poke_page(poke_name):
     response = requests.get(f'{request.host_url}/api/v1/pokemon/{poke_name}')
     if response.status_code == 200:
