@@ -1,13 +1,9 @@
 from flask import Blueprint, request, make_response, jsonify, abort
-import json, requests, random, io, ftplib
+import requests, random, io, ftplib
 from datetime import date
+from settings import *
 
 api = Blueprint('api', __name__, template_folder='templates')
-
-with open('config.json', 'r') as file:
-    data=file.read()
-configs = json.loads(data)
-
 
 @api.route('/api/v1/pokemon/<id>', methods=['GET'])
 def api_pokemon_from_id(id):
@@ -241,8 +237,8 @@ def api_pokemon_save_from_id(id):
         byte_text_markdown = text_markdown.encode('utf-8')
         
         try:
-            ftp = ftplib.FTP(host=configs['FTP_HOST'])
-            ftp.login(user=configs['FTP_USER'], passwd=configs['FTP_PASSWORD'])
+            ftp = ftplib.FTP(host=FTP_HOST)
+            ftp.login(user=FTP_USER, passwd=FTP_PASSWORD)
 
             files = ftp.nlst()
             if folder_name not in files:

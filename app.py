@@ -1,31 +1,27 @@
-from db import *
+from settings import *
+from db_models import *
 from api import api
 from send_email import send_email
 from flask import Flask, render_template, request, redirect, url_for, session, abort, flash
 from flask_caching import Cache
 import redis
 import requests
-import json
 import re
 
 app = Flask(__name__)
 app.register_blueprint(api)
-app.config['SQLALCHEMY_DATABASE_URI'] = connect_string
+app.config['SQLALCHEMY_DATABASE_URI'] = f'postgresql://{POSTGRESQL_USERNAME}:{POSTGRESQL_PASSWORD}@{POSTGRESQL_IP}:{POSTGRESQL_PORT}/{POSTGRESQL_DB_NAME}'
 db.init_app(app)
-
-with open('config.json', 'r') as file:
-    data=file.read()
-configs = json.loads(data)
-app.config['SECRET_KEY'] = configs['SECRET_KEY']
-app.config['CACHE_TYPE'] = configs['CACHE_TYPE']
-app.config['CACHE_REDIS_HOST'] = configs['CACHE_REDIS_HOST']
-app.config['CACHE_REDIS_PORT'] = configs['CACHE_REDIS_PORT']
-app.config['CACHE_REDIS_DB'] = configs['CACHE_REDIS_DB']
+app.config['SECRET_KEY'] = SECRET_KEY
+app.config['CACHE_TYPE'] = CACHE_TYPE
+app.config['CACHE_REDIS_HOST'] = CACHE_REDIS_HOST
+app.config['CACHE_REDIS_PORT'] = CACHE_REDIS_PORT
+app.config['CACHE_REDIS_DB'] = CACHE_REDIS_DB
 cache = Cache(app=app)
 cache.init_app(app)
-redis_client = redis.Redis(host=configs['CACHE_REDIS_HOST'],
-                           port=configs['CACHE_REDIS_PORT'],
-                           db=configs['CACHE_REDIS_DB'])
+redis_client = redis.Redis(host=CACHE_REDIS_HOST,
+                           port=CACHE_REDIS_PORT,
+                           db=CACHE_REDIS_DB)
 
 
 @app.route('/')
@@ -261,4 +257,6 @@ def result_battes():
 
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    with app.app_context():
+        db.create_all()
+    app.run(host=WEB_IP, port=WEB_PORT, debug=DEBUG)
