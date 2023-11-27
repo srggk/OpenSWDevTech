@@ -111,6 +111,50 @@ def api_fight():
         return make_response({'error': 'Bad Request'}, 400)
 
 
+def fight_logic(select_number, select_poke, opponent_poke, select_poke_hp, opponent_poke_hp):
+    # get random number opponent
+    opponent_number = random.randint(1, 10)
+
+    # attack logic
+    if select_poke_hp > 0 and opponent_poke_hp > 0:
+        if select_number % 2 == opponent_number % 2:
+            opponent_poke_hp -= select_poke['attack']
+            round_winner_id = select_poke['id']
+        else:
+            select_poke_hp -= opponent_poke['attack']
+            round_winner_id = opponent_poke['id']
+
+    # checking winner battle
+    winner = None
+    if select_poke_hp <= 0:
+        winner = opponent_poke['id']
+    elif opponent_poke_hp <= 0:
+        winner = select_poke['id']
+
+    # result round
+    result = {
+        'select_poke': {
+            'id': select_poke['id'],
+            'hp': select_poke_hp,
+            'attack': select_poke['attack'],
+        },
+        'opponent_poke': {
+            'id': opponent_poke['id'],
+            'hp': opponent_poke_hp,
+            'attack': opponent_poke['attack'],
+        },
+        'round': {
+            'winner_id': round_winner_id,
+            'select_number': select_number,
+            'opponent_number': opponent_number,
+            'select_poke_hp': select_poke_hp,
+            'opponent_poke_hp': opponent_poke_hp,
+        },
+        'winner': winner,
+    }
+    return result
+
+
 @api.route('/api/v1/fight/<int:select_number>', methods=['POST'])
 def api_fight_round(select_number):
     select_poke = request.json['select_poke']
@@ -118,50 +162,11 @@ def api_fight_round(select_number):
 
     if select_poke and opponent_poke and select_number > 0 and select_number < 11:
         if {'id', 'hp', 'attack'}.issubset(set(select_poke)) and {'id', 'hp', 'attack'}.issubset(set(opponent_poke)):
-            select_poke_hp = select_poke['hp']
-            opponent_poke_hp = opponent_poke['hp']
-            round_winner_id = None
-            
-            # get random number opponent
-            opponent_number = random.randint(1, 10)
-
-            # attack logic
-            if select_poke_hp > 0 and opponent_poke_hp > 0:
-                if select_number % 2 == opponent_number % 2:
-                    opponent_poke_hp -= select_poke['attack']
-                    round_winner_id = select_poke['id']
-                else:
-                    select_poke_hp -= opponent_poke['attack']
-                    round_winner_id = opponent_poke['id']
-
-            # checking winner battle
-            winner = None
-            if select_poke_hp <= 0:
-                winner = opponent_poke['id']
-            elif opponent_poke_hp <= 0:
-                winner = select_poke['id']
-
-            # result round
-            result = {
-                'select_poke': {
-                    'id': select_poke['id'],
-                    'hp': select_poke_hp,
-                    'attack': select_poke['attack'],
-                },
-                'opponent_poke': {
-                    'id': opponent_poke['id'],
-                    'hp': opponent_poke_hp,
-                    'attack': opponent_poke['attack'],
-                },
-                'round': {
-                    'winner_id': round_winner_id,
-                    'select_number': select_number,
-                    'opponent_number': opponent_number,
-                    'select_poke_hp': select_poke_hp,
-                    'opponent_poke_hp': opponent_poke_hp,
-                },
-                'winner': winner,
-            }
+            result = fight_logic(select_number=select_number,
+                                 select_poke=select_poke,
+                                 opponent_poke=opponent_poke,
+                                 select_poke_hp=select_poke['hp'],
+                                 opponent_poke_hp=opponent_poke['hp'])
             return make_response(result, 200)  
     return make_response({'error': 'Bad Request'}, 400)
     
@@ -182,27 +187,15 @@ def api_fight_fast():
             # start new rounds until a winner is found
             while select_poke_hp > 0 and opponent_poke_hp > 0:
                 select_number = random.randint(1, 10)
-                url = f'{request.host_url}/api/v1/fight/{select_number}'
-                response = requests.post(url, json={
-                    'select_poke': {
-                        'id': select_poke_info['id'],
-                        'hp': select_poke_hp,
-                        'attack': select_poke_info['attack'],
-                    },
-                    'opponent_poke': {
-                        'id': opponent_poke_info['id'],
-                        'hp': opponent_poke_hp,
-                        'attack': opponent_poke_info['attack'],
-                    },
-                })
-                
-                if response.status_code == 200:
-                    select_poke_hp = response.json()['select_poke']['hp']
-                    opponent_poke_hp = response.json()['opponent_poke']['hp']
-                    winner = response.json()['winner']
-                    rounds.append(response.json()['round'])
-                else:
-                    return make_response({'error': 'Service Unavailable'}, 503)
+                result = fight_logic(select_number=select_number,
+                                     select_poke=select_poke_info,
+                                     opponent_poke=opponent_poke_info,
+                                     select_poke_hp=select_poke_hp,
+                                     opponent_poke_hp=opponent_poke_hp)
+                select_poke_hp = result['select_poke']['hp']
+                opponent_poke_hp = result['opponent_poke']['hp']
+                winner = result['winner']
+                rounds.append(result['round'])
 
                 if winner:
                     break
