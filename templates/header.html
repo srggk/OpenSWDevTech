@@ -1,0 +1,13 @@
+<div class="container">
+    <header class="d-flex flex-wrap align-items-center justify-content-center justify-content-md-between py-3 border-bottom">
+        <ul class="nav col-12 col-md-auto mb-2 justify-content-center mb-md-0">
+            <li><a href="/" class="nav-link px-3 text-dark">Go home</a></li>
+            <li><a href="{{url_for('result_battes')}}" class="nav-link px-3 text-dark">Battle Results</a></li>
+        </ul>
+  
+        <div class="col-md-3 text-end">
+            <a href="#" class="btn btn-outline-dark">Login</a>
+            <a href="{{url_for('auth.sign_up')}}" class="btn btn-dark">Sign up</a>
+        </div>
+      </header>
+</div>

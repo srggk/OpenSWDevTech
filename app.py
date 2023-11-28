@@ -1,31 +1,32 @@
 from settings import *
-from db_models import *
+from db_models import User, Battle
 from api import api
+from auth import auth
 from send_email import send_email
 from flask import Flask, render_template, request, redirect, url_for, session, abort, flash
-from flask_caching import Cache
-import redis
 import requests
 import re
 
 app = Flask(__name__)
 app.register_blueprint(api)
+app.register_blueprint(auth)
+app.config['SECRET_KEY'] = SECRET_KEY
+
 app.config['SQLALCHEMY_DATABASE_URI'] = f'postgresql://{POSTGRESQL_USERNAME}:{POSTGRESQL_PASSWORD}@{POSTGRESQL_IP}:{POSTGRESQL_PORT}/{POSTGRESQL_DB_NAME}'
 db.init_app(app)
-app.config['SECRET_KEY'] = SECRET_KEY
+
 app.config['CACHE_TYPE'] = CACHE_TYPE
 app.config['CACHE_REDIS_HOST'] = CACHE_REDIS_HOST
 app.config['CACHE_REDIS_PORT'] = CACHE_REDIS_PORT
 app.config['CACHE_REDIS_DB'] = CACHE_REDIS_DB
-cache = Cache(app=app)
 cache.init_app(app)
-redis_client = redis.Redis(host=CACHE_REDIS_HOST,
-                           port=CACHE_REDIS_PORT,
-                           db=CACHE_REDIS_DB)
+
+csrf.init_app(app)
+bcrypt.init_app(app)
 
 
 @app.route('/')
-@cache.cached(timeout=60, key_prefix='pokes', query_string=True)
+@cache.cached(timeout=1, key_prefix='pokes', query_string=True)
 def poke():
     page = request.args.get('page')
     page = int(page) if page and page.isdigit() else 1
@@ -47,7 +48,7 @@ def poke():
 
 
 @app.route('/poke/<string:poke_name>')
-@cache.cached(timeout=60, key_prefix='poke_info', query_string=True)
+@cache.cached(timeout=30, key_prefix='poke_info', query_string=True)
 def poke_page(poke_name):
     response = requests.get(f'{request.host_url}/api/v1/pokemon/{poke_name}')
     if response.status_code == 200:
@@ -222,8 +223,8 @@ def fast_battle():
                                     quanity_rounds=len(rounds))
                     db.session.add(battle)
                     db.session.commit()
-                except Exception:
-                    print("ERROR DB: Battle failed to add")
+                except Exception as e:
+                    print("ERROR DB: Battle failed to add\n", e)
                     db.session.rollback()
                 
                 # send result to email if need

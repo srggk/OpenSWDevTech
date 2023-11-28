@@ -1,4 +1,3 @@
-from app import app
 from settings import *
 from datetime import date
 from io import StringIO

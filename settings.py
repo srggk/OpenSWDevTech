@@ -1,5 +1,11 @@
 from os import environ
 from dotenv import load_dotenv
+from flask_sqlalchemy import SQLAlchemy
+from flask_caching import Cache
+from flask_wtf.csrf import CSRFProtect
+from flask_bcrypt import Bcrypt
+import redis
+
 # load_dotenv(dotenv_path=".env.docker")
 load_dotenv(dotenv_path=".env.local")
 
@@ -27,3 +33,12 @@ CACHE_TYPE = environ.get('CACHE_TYPE')
 CACHE_REDIS_HOST = environ.get('CACHE_REDIS_HOST')
 CACHE_REDIS_PORT = environ.get('CACHE_REDIS_PORT')
 CACHE_REDIS_DB = environ.get('CACHE_REDIS_DB')
+
+
+db = SQLAlchemy()
+csrf = CSRFProtect()
+bcrypt = Bcrypt()
+cache = Cache()
+redis_client = redis.Redis(host=CACHE_REDIS_HOST,
+                           port=CACHE_REDIS_PORT,
+                           db=CACHE_REDIS_DB)
