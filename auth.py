@@ -1,9 +1,10 @@
 from settings import *
-from flask import Blueprint, flash, redirect, render_template, session, url_for
+from flask import Blueprint, flash, redirect, render_template, request, session, url_for
 from forms import SignUpForm, LoginForm, LoginTwoFactorForm, ForgotPasswordForm, ChangePassword
 from flask_login import login_user, current_user, logout_user, login_required
 from db_models import User
 import random
+import requests
 
 auth = Blueprint('auth', __name__, template_folder='templates')
 
@@ -75,6 +76,75 @@ def confirm_login():
         else:
             flash('Unexpected error.', 'error')
     return render_template('login_two_factor.html', form=form)
+
+
+@auth.route('/login-yandex-id')
+def login_yandex_id():
+    return redirect(f"{YANDEX_ID_URL}?response_type=code&client_id={YANDEX_ID_CLIENT_ID}&redirect_uri={YANDEX_ID_CALLBACK_URI}")
+
+
+@auth.route('/login-yandex-id/callback')
+def login_yandex_id_callback():
+    # get access token
+    code = request.args.get('code', None)
+    data_request_token = {
+        'grant_type': 'authorization_code',
+        'code': code,
+        'client_id': YANDEX_ID_CLIENT_ID,
+        'client_secret': YANDEX_ID_CLIENT_SECRET,
+        'redirect_uri': YANDEX_ID_CALLBACK_URI
+    }
+    response_token = requests.post(YANDEX_ID_TOKEN_URL, data=data_request_token)
+
+    if response_token.status_code != 200:
+        flash('Error occurred on the Yandex ID server side.', 'error')
+        return render_template('login.html', form=LoginForm())
+    
+    token_json = response_token.json() # access_token, expires_in, refresh_token, token_type
+
+    # get info about user from Yandex ID
+    headers = {'Authorization': f"OAuth {token_json['access_token']}"}
+    response_user_info = requests.get('https://login.yandex.ru/info?format=json', headers=headers)
+
+    if response_user_info.status_code != 200:
+        flash('Error occurred on the Yandex ID server side.', 'error')
+        return render_template('login.html', form=LoginForm())
+
+    user_info_json = response_user_info.json()
+    user_info = {'id': user_info_json.get('id'),
+                 'name': user_info_json.get('real_name', None),
+                 'email': user_info_json.get('default_email', None)}
+
+    # checking user and login
+    user = User.query.filter(User.email == user_info['email']).first()
+    if user:
+        # updating name from Yandex ID
+        if user.name != user_info['email']:
+            user.name = user_info['email']
+            try:
+                db.session.commit()
+            except Exception as e:
+                db.session.rollback()
+                print("ERROR DB: User update name failed\n", e)
+                flash('Failed to update username.', 'error')
+
+        login_user(user)
+        return redirect(url_for('poke'))
+    else:
+        user = User(name=user_info['name'],
+                    email=user_info['email'],
+                    password=user_info['id'])
+        try:
+            db.session.add(user)
+            db.session.commit()
+            
+            login_user(user)
+            return redirect(url_for('poke'))
+        except Exception as e:
+            db.session.rollback()
+            print("ERROR DB: User failed to add\n", e)
+            flash('Unexpected error. Please try registering through our website.', 'error')
+    return render_template('login.html', form=LoginForm())
 
 
 @auth.route('/log-out')
