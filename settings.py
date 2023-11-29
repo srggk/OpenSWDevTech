@@ -1,5 +1,6 @@
 from os import environ
 from dotenv import load_dotenv
+from flask_login import LoginManager
 from flask_sqlalchemy import SQLAlchemy
 from flask_caching import Cache
 from flask_wtf.csrf import CSRFProtect
@@ -42,3 +43,4 @@ cache = Cache()
 redis_client = redis.Redis(host=CACHE_REDIS_HOST,
                            port=CACHE_REDIS_PORT,
                            db=CACHE_REDIS_DB)
+login_manager = LoginManager()

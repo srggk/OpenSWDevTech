@@ -1,4 +1,5 @@
 from settings import db, bcrypt
+from flask_login import UserMixin
 
 
 class Battle(db.Model):
@@ -22,7 +23,7 @@ class Battle(db.Model):
                   self.quanity_rounds, self.created_at)
 
 
-class User(db.Model, ):
+class User(db.Model, UserMixin):
     __tablename__ = 'users'
     __fields__ = ['id', 'name', 'email', 'password', 'created_on', 'updated_on']
 
@@ -39,8 +40,14 @@ class User(db.Model, ):
         super().__init__()
         self.name = name
         self.email = email
-        self.password = bcrypt.generate_password_hash(password).decode('utf-8')
+        self.password = self.get_password_hash(password)
 
     def __repr__(self):
         return '<User: id=%s, name=%s, email=%s, created_on==%s, updated_on==%s>' \
             % (self.id, self.name, self.email, self.created_on, self.updated_on)
+    
+    def check_password(self, password):
+        return bcrypt.check_password_hash(self.password, password)
+
+    def get_password_hash(self, password):
+        return bcrypt.generate_password_hash(password).decode('utf-8')

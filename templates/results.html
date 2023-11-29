@@ -21,6 +21,7 @@
         <table class="table">
             <thead>
               <tr>
+                <th scope="col">User</th>
                 <th scope="col">Your poke</th>
                 <th scope="col">Opponent poke</th>
                 <th scope="col">You won</th>
@@ -31,6 +32,11 @@
             <tbody>
                 {% for bttl in battles %}
                     <tr>
+                        {% if bttl.user.name %}
+                            <td>{{bttl.user.name}}</td>
+                        {% else %}
+                            <td>-</td>
+                        {% endif %}
                         <td>{{bttl.select_poke}}</td>
                         <td>{{bttl.opponent_poke}}</td>
                         <td>{{bttl.select_is_win}}</td>

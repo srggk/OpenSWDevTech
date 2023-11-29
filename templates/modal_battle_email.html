@@ -8,6 +8,7 @@
         <div class="modal-body">
           <p>Do you want to receive the results of the battle by email?<br/>It will be sent when the round is completed. If not, leave the field empty:</p>
           <form action="{{url_for('fast_battle')}}" method="post" enctype="multipart/form-data">
+            <input type="hidden" name="csrf_token" value="{{csrf_token()}}"/>
             <div class="input-group">
                 <input type="email" name="res_battle_email" class="form-control" placeholder="example@domain.com">
                 <button class="btn btn-outline-dark" type="submit">Enter</button>

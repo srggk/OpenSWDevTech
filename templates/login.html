@@ -17,7 +17,7 @@
     <div class="row justify-content-center col-12">
         <div class="col-6 d-flex justify-content-center border rounded">
             <div class="col-11 d-flex justify-content-center flex-column">
-                <h3 class="text-center mt-4 mb-3">Sign up</h3>
+                <h3 class="text-center mt-4 mb-3">Login</h3>
 
                 {% with messages = get_flashed_messages(with_categories=true) %}
                     {% if messages %}
@@ -34,17 +34,8 @@
                 <form action="" method="post">
                     {{ form.csrf_token }}
                     <span>
-                        <p class="mb-2">{{ form.name.label(class="text-dark") }}</p>
-                        {{ form.name(class="form-control", placeholder="Ivan Inanov") }}
-                        
-                        {% if form.name.errors %}
-                            {% for error in form.name.errors %}
-                                <span class="badge text-danger">{{ error }}</span>
-                            {% endfor %}
-                        {% endif %}
-
-                        <p class="mb-2 mt-3">{{ form.email.label(class="text-dark") }}</p>
-                        {{ form.email(class="form-control", placeholder="email@domain.com") }}
+                        <p class="mb-2">{{ form.email.label(class="text-dark") }}</p>
+                        {{ form.email(class="form-control") }}
 
                         {% if form.email.errors %}
                             {% for error in form.email.errors %}
@@ -60,20 +51,14 @@
                                 <span class="badge text-danger">{{ error }}</span>
                             {% endfor %}
                         {% endif %}
-
-                        <p class="mb-2 mt-3">{{ form.confirm.label(class="text-dark") }}</p>
-                        {{ form.confirm(class="form-control") }}
-
-                        {% if form.confirm.errors %}
-                            {% for error in form.confirm.errors %}
-                                <span class="badge text-danger">{{ error }}</span>
-                            {% endfor %}
-                        {% endif %}
+                    </span>
+                    <span class="mb-1 mt-1 col-12 d-flex justify-content-center">
+                        <a href="{{url_for('auth.forgot_password')}}" class="text-secondary">Forgot password</a>
                     </span>
                     <span class="mt-4 mb-3 col-12 d-flex justify-content-center">{{ form.submit(class="btn btn-dark col-12") }}</span> 
                     <span class="mb-4 col-12 d-flex justify-content-center">
-                        <a href="{{url_for('auth.login')}}" class="text-dark">Already have an account? Login!</a>
-                    </span>        
+                        <a href="{{url_for('auth.sign_up')}}" class="text-dark">Don't have an account yet? Sign up!</a>
+                    </span>      
                 </form>
             </div>
         </div>
