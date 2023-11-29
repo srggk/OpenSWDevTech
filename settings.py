@@ -41,6 +41,8 @@ YANDEX_ID_CLIENT_SECRET = environ.get('YANDEX_ID_CLIENT_SECRET')
 YANDEX_ID_TOKEN_URL = environ.get('YANDEX_ID_TOKEN_URL')
 YANDEX_ID_CALLBACK_URI = environ.get('YANDEX_ID_CALLBACK_URI')
 
+MAIL_ENABLED = True
+
 db = SQLAlchemy()
 csrf = CSRFProtect()
 bcrypt = Bcrypt()

@@ -223,14 +223,16 @@ def fast_battle():
                                            quanity_rounds=len(rounds))
                 
                 # send result to email if need
-                if 'res_battle_email' in request.form and is_valid_email(request.form['res_battle_email']):
+                if 'res_battle_email' in request.form and is_valid_email(request.form['res_battle_email']) and MAIL_ENABLED:
                     email = request.form['res_battle_email']
                     battle_result = results_battle_to_string(select_poke=select_poke_info,
                                                              opponent_poke=opponent_poke_info,
                                                              rounds=rounds,
                                                              winner=winner)
                     send_email(to_email=email,
-                               results=battle_result.replace('\n', '<br/>'))
+                               theme='battle_result',
+                               content=battle_result.replace('\n', '<br/>'), 
+                               username=current_user.name if current_user.is_authenticated else None)
 
                 return render_template('battle.html',
                             select_poke=select_poke_info, 

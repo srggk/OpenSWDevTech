@@ -3,6 +3,7 @@ from flask import Blueprint, flash, redirect, render_template, request, session,
 from forms import SignUpForm, LoginForm, LoginTwoFactorForm, ForgotPasswordForm, ChangePassword
 from flask_login import login_user, current_user, logout_user, login_required
 from db_models import User
+from send_email import send_email
 import random
 import requests
 
@@ -30,7 +31,7 @@ def sign_up():
         try:
             db.session.add(user)
             db.session.commit()
-            return redirect(url_for('poke'))
+            return redirect(url_for('auth.login'))
         except Exception as e:
             db.session.rollback()
             print("ERROR DB: User failed to add\n", e)
@@ -50,7 +51,13 @@ def login():
             code = random.randint(100000000, 999999999)
             print('CODE FOR LOGIN:', code)
             session['data_login'] = {'email': user.email, 'code': code}
-            # send to email
+
+            if MAIL_ENABLED:
+                send_email(to_email=user.email,
+                           theme='confirm_login',
+                           content=code,
+                           username=user.name)
+
             return redirect(url_for('auth.confirm_login'))
         flash('Invalid email or password.', 'error')
     return render_template('login.html', form=form)
@@ -119,8 +126,8 @@ def login_yandex_id_callback():
     user = User.query.filter(User.email == user_info['email']).first()
     if user:
         # updating name from Yandex ID
-        if user.name != user_info['email']:
-            user.name = user_info['email']
+        if user.name != user_info['name']:
+            user.name = user_info['name']
             try:
                 db.session.commit()
             except Exception as e:
@@ -170,7 +177,13 @@ def forgot_password():
             code = random.randint(100000000, 999999999)
             print('CODE FOR CHANGE PASSWORD:', code)
             session['data_to_change_password'] = {'email': user.email, 'code': code}
-            # send to email
+
+            if MAIL_ENABLED:
+                send_email(to_email=user.email,
+                           theme='change_password',
+                           content=code,
+                           username=user.email)
+
             return redirect(url_for('auth.change_password'))
         flash('Account with this email does not exist.', 'error')
     return render_template('forgot_password.html', form=form)
