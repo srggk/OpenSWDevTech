@@ -6,6 +6,7 @@ from db_models import User
 from send_email import send_email
 import random
 import requests
+import secrets
 
 auth = Blueprint('auth', __name__, template_folder='templates')
 
@@ -140,7 +141,7 @@ def login_yandex_id_callback():
     else:
         user = User(name=user_info['name'],
                     email=user_info['email'],
-                    password=user_info['id'])
+                    password=secrets.token_urlsafe(128))
         try:
             db.session.add(user)
             db.session.commit()
