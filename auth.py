@@ -88,11 +88,16 @@ def confirm_login():
 
 @auth.route('/login-yandex-id')
 def login_yandex_id():
+    if current_user.is_authenticated:
+        return redirect(url_for('poke'))
     return redirect(f"{YANDEX_ID_URL}?response_type=code&client_id={YANDEX_ID_CLIENT_ID}&redirect_uri={YANDEX_ID_CALLBACK_URI}")
 
 
 @auth.route('/login-yandex-id/callback')
 def login_yandex_id_callback():
+    if current_user.is_authenticated:
+        return redirect(url_for('poke'))
+
     # get access token
     code = request.args.get('code', None)
     data_request_token = {
