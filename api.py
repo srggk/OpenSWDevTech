@@ -1,9 +1,10 @@
+from settings import *
 from flask import Blueprint, request, make_response, jsonify, abort
 import requests, random, io, ftplib
 from datetime import date
-from settings import *
 
 api = Blueprint('api', __name__, template_folder='templates')
+csrf.exempt(api)
 
 @api.route('/api/v1/pokemon/<id>', methods=['GET'])
 def api_pokemon_from_id(id):

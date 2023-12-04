@@ -50,6 +50,7 @@
                 </p>
 
                 <form class="col-12 mt-2" action="{{url_for('poke_page_save')}}" method="post" enctype="multipart/form-data">
+                    <input type="hidden" name="csrf_token" value="{{csrf_token()}}"/>
                     <input type="hidden" name="poke_id" value="{{poke.id}}">
                     <button class="col-12 btn btn-outline-secondary" type="submit">Save info about poke to file</button>
                 </form>
@@ -62,6 +63,7 @@
                     <h5 class="text-center">Arrange a battle? You're playing for {{poke.name}}</h5>
                     <p class="text-center">You can arrange a battle with another Pokemon, which we will choose randomly. Would you like to try it?</p>
                     <form class="col-12 mt-1" action="{{url_for('battle')}}" method="post" enctype="multipart/form-data">
+                        <input type="hidden" name="csrf_token" value="{{csrf_token()}}"/>
                         <input type="hidden" name="select_poke_id" value="{{poke.id}}">
                         <button class="col-12 btn btn-secondary" type="submit">To battle</button>
                     </form>

@@ -1,31 +1,34 @@
 from settings import *
-from db_models import *
+from db_models import User, Battle
 from api import api
+from auth import auth
 from send_email import send_email
 from flask import Flask, render_template, request, redirect, url_for, session, abort, flash
-from flask_caching import Cache
-import redis
+from flask_login import current_user, login_required
 import requests
 import re
 
 app = Flask(__name__)
 app.register_blueprint(api)
+app.register_blueprint(auth)
+app.config['SECRET_KEY'] = SECRET_KEY
+
 app.config['SQLALCHEMY_DATABASE_URI'] = f'postgresql://{POSTGRESQL_USERNAME}:{POSTGRESQL_PASSWORD}@{POSTGRESQL_IP}:{POSTGRESQL_PORT}/{POSTGRESQL_DB_NAME}'
 db.init_app(app)
-app.config['SECRET_KEY'] = SECRET_KEY
+
 app.config['CACHE_TYPE'] = CACHE_TYPE
 app.config['CACHE_REDIS_HOST'] = CACHE_REDIS_HOST
 app.config['CACHE_REDIS_PORT'] = CACHE_REDIS_PORT
 app.config['CACHE_REDIS_DB'] = CACHE_REDIS_DB
-cache = Cache(app=app)
 cache.init_app(app)
-redis_client = redis.Redis(host=CACHE_REDIS_HOST,
-                           port=CACHE_REDIS_PORT,
-                           db=CACHE_REDIS_DB)
 
+csrf.init_app(app)
+bcrypt.init_app(app)
+login_manager.init_app(app)
+login_manager.login_view = 'auth.login'
 
 @app.route('/')
-@cache.cached(timeout=60, key_prefix='pokes', query_string=True)
+@cache.cached(timeout=1, key_prefix='pokes', query_string=True)
 def poke():
     page = request.args.get('page')
     page = int(page) if page and page.isdigit() else 1
@@ -47,7 +50,7 @@ def poke():
 
 
 @app.route('/poke/<string:poke_name>')
-@cache.cached(timeout=60, key_prefix='poke_info', query_string=True)
+@cache.cached(timeout=30, key_prefix='poke_info', query_string=True)
 def poke_page(poke_name):
     response = requests.get(f'{request.host_url}/api/v1/pokemon/{poke_name}')
     if response.status_code == 200:
@@ -77,7 +80,10 @@ def battle():
         select_poke_id = request.form['select_poke_id']
 
         # clear old data about battle 
-        session.clear()
+        if 'data_battle' in session:
+            session.pop('data_battle')
+        if 'data_battle_history' in session:
+            session.pop('data_battle_history')
     
         # get randow opponent poke & info about select and opponent poke
         response = requests.get(f'{request.host_url}/api/v1/pokemon/random')
@@ -90,12 +96,12 @@ def battle():
                 opponent_poke_info = response.json()['opponent_poke']
 
                 # save info
-                session['select_poke_id'] = select_poke_info['id']
-                session['select_poke_hp'] = select_poke_info['hp']
-                session['select_poke_attack'] = select_poke_info['attack']
-                session['opponent_poke_id'] = opponent_poke_info['id']
-                session['opponent_poke_hp'] = opponent_poke_info['hp']
-                session['opponent_poke_attack'] = opponent_poke_info['attack']
+                session['data_battle'] = {'select_poke_id': select_poke_info['id'],
+                                          'select_poke_hp': select_poke_info['hp'],
+                                          'select_poke_attack': select_poke_info['attack'],
+                                          'opponent_poke_id': opponent_poke_info['id'],
+                                          'opponent_poke_hp': opponent_poke_info['hp'],
+                                          'opponent_poke_attack': opponent_poke_info['attack']}
 
                 return render_template('battle.html',
                                select_poke=select_poke_info,
@@ -105,15 +111,15 @@ def battle():
 
 @app.route('/battle/round', methods=['GET', 'POST'])
 def battle_round():
-    if request.method == 'POST' and 'select_number' in request.form:
+    if request.method == 'POST' and 'select_number' in request.form and 'data_battle' in session:
         select_number = request.form['select_number']
 
         # someone has already won, there are no more rounds
-        if session['select_poke_hp'] <= 0 or session['opponent_poke_hp'] <= 0:
+        if session['data_battle']['select_poke_hp'] <= 0 or session['data_battle']['opponent_poke_hp'] <= 0:
             return redirect(url_for('poke'))
 
         # get info about select & opponent poke
-        response = requests.get(f'{request.host_url}/api/v1/fight?select_poke_id={session["select_poke_id"]}&opponent_poke_id={session["opponent_poke_id"]}')
+        response = requests.get(f'{request.host_url}/api/v1/fight?select_poke_id={session["data_battle"]["select_poke_id"]}&opponent_poke_id={session["data_battle"]["opponent_poke_id"]}')
         if response.status_code == 200:
             select_poke_info = response.json()['select_poke']
             opponent_poke_info = response.json()['opponent_poke']
@@ -126,46 +132,41 @@ def battle_round():
             url = f'{request.host_url}/api/v1/fight/{select_number}'
             response = requests.post(url, json={
                 'select_poke': {
-                    'id': session['select_poke_id'],
-                    'hp': session['select_poke_hp'],
-                    'attack': session['select_poke_attack'],
+                    'id': session['data_battle']['select_poke_id'],
+                    'hp': session['data_battle']['select_poke_hp'],
+                    'attack': session['data_battle']['select_poke_attack'],
                 },
                 'opponent_poke': {
-                    'id': session['opponent_poke_id'],
-                    'hp': session['opponent_poke_hp'],
-                    'attack': session['opponent_poke_attack'],
+                    'id': session['data_battle']['opponent_poke_id'],
+                    'hp': session['data_battle']['opponent_poke_hp'],
+                    'attack': session['data_battle']['opponent_poke_attack'],
                 },
             })
             
             if response.status_code == 200:
-                session['select_poke_hp'] = response.json()['select_poke']['hp']
-                session['opponent_poke_hp'] = response.json()['opponent_poke']['hp']
+                session['data_battle']['select_poke_hp'] = response.json()['select_poke']['hp']
+                session['data_battle']['opponent_poke_hp'] = response.json()['opponent_poke']['hp']
                 winner = response.json()['winner']
 
                 # add info about round to history
-                if 'history' not in session:
-                    session['history'] = []
-                session['history'].append(response.json()['round'])
+                if 'data_battle_history' not in session:
+                    session['data_battle_history'] = []
+                session['data_battle_history'].append(response.json()['round'])
 
                 # check if the battle is over 
-                if winner:
-                    try:
-                        battle = Battle(select_poke=session['select_poke_id'],
-                                        opponent_poke=session['opponent_poke_id'],
-                                        select_is_win=winner == session['select_poke_id'],
-                                        quanity_rounds=len(session['history']))
-                        db.session.add(battle)
-                        db.session.commit()
-                    except Exception:
-                        print("ERROR DB: Battle failed to add")
-                        db.session.rollback()
+                if winner:                    
+                    record_battle_result_to_db(user_id=current_user.id if current_user.is_authenticated else None,
+                                               select_poke=session['data_battle']['select_poke_id'],
+                                               opponent_poke=session['data_battle']['opponent_poke_id'],
+                                               select_is_win=winner == session['data_battle']['select_poke_id'],
+                                               quanity_rounds=len(session['data_battle_history']))
 
                 print(winner)
                 
                 return render_template('battle.html',
                             select_poke=select_poke_info, 
                             opponent_poke=opponent_poke_info,
-                            rounds_result=session['history'],
+                            rounds_result=session['data_battle_history'],
                             winner=winner)
             else:
                 abort(503)
@@ -192,14 +193,14 @@ def results_battle_to_string(select_poke, opponent_poke, rounds, winner):
 @app.route('/battle/fast', methods=['GET', 'POST'])
 def fast_battle():
     if request.method == 'POST':
-        if 'select_poke_id' in session and 'opponent_poke_id' in session:
+        if 'data_battle' in session and 'select_poke_id' in session['data_battle'] and 'opponent_poke_id' in session['data_battle']:
 
             # someone has already won, there are no more rounds
-            if session['select_poke_hp'] <= 0 or session['opponent_poke_hp'] <= 0:
+            if session['data_battle']['select_poke_hp'] <= 0 or session['data_battle']['opponent_poke_hp'] <= 0:
                 return redirect(url_for('poke'))
 
             # get info about select & opponent poke
-            response = requests.get(f'{request.host_url}/api/v1/fight?select_poke_id={session["select_poke_id"]}&opponent_poke_id={session["opponent_poke_id"]}')
+            response = requests.get(f'{request.host_url}/api/v1/fight?select_poke_id={session["data_battle"]["select_poke_id"]}&opponent_poke_id={session["data_battle"]["opponent_poke_id"]}')
             if response.status_code == 200:
                 select_poke_info = response.json()['select_poke']
                 opponent_poke_info = response.json()['opponent_poke']
@@ -207,34 +208,31 @@ def fast_battle():
                 abort(503)
 
             # get result of the battle (fast)
-            response = requests.get(f'{request.host_url}/api/v1/fight/fast?select_poke_id={session["select_poke_id"]}&opponent_poke_id={session["opponent_poke_id"]}')
+            response = requests.get(f'{request.host_url}/api/v1/fight/fast?select_poke_id={session["data_battle"]["select_poke_id"]}&opponent_poke_id={session["data_battle"]["opponent_poke_id"]}')
             if response.status_code == 200:
-                session['select_poke_hp'] = response.json()['select_poke']['hp']
-                session['opponent_poke_hp'] = response.json()['opponent_poke']['hp']
+                session['data_battle']['select_poke_hp'] = response.json()['select_poke']['hp']
+                session['data_battle']['opponent_poke_hp'] = response.json()['opponent_poke']['hp']
                 rounds = response.json()['rounds']
                 winner = response.json()['winner']
                 
                 # record result of the battle to db
-                try:
-                    battle = Battle(select_poke=session['select_poke_id'],
-                                    opponent_poke=session['opponent_poke_id'],
-                                    select_is_win=winner == session['select_poke_id'],
-                                    quanity_rounds=len(rounds))
-                    db.session.add(battle)
-                    db.session.commit()
-                except Exception:
-                    print("ERROR DB: Battle failed to add")
-                    db.session.rollback()
+                record_battle_result_to_db(user_id=current_user.id if current_user.is_authenticated else None,
+                                           select_poke=session['data_battle']['select_poke_id'],
+                                           opponent_poke=session['data_battle']['opponent_poke_id'],
+                                           select_is_win=winner == session['data_battle']['select_poke_id'],
+                                           quanity_rounds=len(rounds))
                 
                 # send result to email if need
-                if 'res_battle_email' in request.form and is_valid_email(request.form['res_battle_email']):
+                if 'res_battle_email' in request.form and is_valid_email(request.form['res_battle_email']) and MAIL_ENABLED:
                     email = request.form['res_battle_email']
                     battle_result = results_battle_to_string(select_poke=select_poke_info,
                                                              opponent_poke=opponent_poke_info,
                                                              rounds=rounds,
                                                              winner=winner)
                     send_email(to_email=email,
-                               results=battle_result.replace('\n', '<br/>'))
+                               theme='battle_result',
+                               content=battle_result.replace('\n', '<br/>'), 
+                               username=current_user.name if current_user.is_authenticated else None)
 
                 return render_template('battle.html',
                             select_poke=select_poke_info, 
@@ -244,6 +242,20 @@ def fast_battle():
             else:
                 abort(503)
     return redirect(url_for('poke'))
+
+
+def record_battle_result_to_db(user_id, select_poke, opponent_poke, select_is_win, quanity_rounds):
+    try:
+        battle = Battle(user_id=user_id,
+                        select_poke=select_poke,
+                        opponent_poke=opponent_poke,
+                        select_is_win=select_is_win,
+                        quanity_rounds=quanity_rounds)
+        db.session.add(battle)
+        db.session.commit()
+    except Exception as e:
+        print("ERROR DB: Battle failed to add\n", e)
+        db.session.rollback()
 
 
 @app.route('/result-battes')
