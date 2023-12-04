@@ -7,8 +7,8 @@ from flask_wtf.csrf import CSRFProtect
 from flask_bcrypt import Bcrypt
 import redis
 
-# load_dotenv(dotenv_path=".env.docker")
-load_dotenv(dotenv_path=".env.local")
+load_dotenv(dotenv_path=".env.docker")
+# load_dotenv(dotenv_path=".env.local")
 
 SECRET_KEY = environ.get('SECRET_KEY')
 DEBUG = environ.get('WEB_DEBUG') == "True"

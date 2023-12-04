@@ -54,7 +54,16 @@ services:
       - "USERS=${FTP_USER}|${FTP_PASSWORD}|/ftp/ftp"
     # volumes:
     #   - ./ftp_server_folder:/ftp/ftp/ftp_server_folder
+  grafana:
+    image: grafana/grafana-enterprise
+    container_name: poke-grafana
+    restart: always
+    ports:
+      - 3000:3000
+    volumes:
+      - grafana-data:/var/lib/grafana
 
 volumes:
   postgres-data:
   redis-data:
+  grafana-data:

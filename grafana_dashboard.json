@@ -1,0 +1,623 @@
+{
+    "annotations": {
+      "list": [
+        {
+          "builtIn": 1,
+          "datasource": {
+            "type": "grafana",
+            "uid": "-- Grafana --"
+          },
+          "enable": true,
+          "hide": true,
+          "iconColor": "rgba(0, 211, 255, 1)",
+          "name": "Annotations & Alerts",
+          "type": "dashboard"
+        }
+      ]
+    },
+    "editable": true,
+    "fiscalYearStartMonth": 0,
+    "graphTooltip": 0,
+    "id": 1,
+    "links": [],
+    "liveNow": false,
+    "panels": [
+      {
+        "datasource": {
+          "type": "postgres",
+          "uid": "bb5ded42-bd6f-4fed-bd0f-d6b302ba1277"
+        },
+        "description": "",
+        "fieldConfig": {
+          "defaults": {
+            "color": {
+              "mode": "thresholds"
+            },
+            "fieldMinMax": false,
+            "mappings": [],
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {
+                  "color": "green"
+                }
+              ]
+            }
+          },
+          "overrides": []
+        },
+        "gridPos": {
+          "h": 8,
+          "w": 8,
+          "x": 0,
+          "y": 0
+        },
+        "id": 1,
+        "options": {
+          "colorMode": "value",
+          "graphMode": "area",
+          "justifyMode": "center",
+          "orientation": "horizontal",
+          "reduceOptions": {
+            "calcs": [
+              "lastNotNull"
+            ],
+            "fields": "",
+            "values": false
+          },
+          "text": {
+            "titleSize": 30,
+            "valueSize": 100
+          },
+          "textMode": "auto",
+          "wideLayout": true
+        },
+        "pluginVersion": "10.2.2",
+        "targets": [
+          {
+            "datasource": {
+              "type": "postgres",
+              "uid": "bb5ded42-bd6f-4fed-bd0f-d6b302ba1277"
+            },
+            "editorMode": "builder",
+            "format": "table",
+            "rawSql": "SELECT COUNT(id) FROM battles LIMIT 50 ",
+            "refId": "A",
+            "sql": {
+              "columns": [
+                {
+                  "name": "COUNT",
+                  "parameters": [
+                    {
+                      "name": "id",
+                      "type": "functionParameter"
+                    }
+                  ],
+                  "type": "function"
+                }
+              ],
+              "groupBy": [
+                {
+                  "property": {
+                    "type": "string"
+                  },
+                  "type": "groupBy"
+                }
+              ],
+              "limit": 50
+            },
+            "table": "battles"
+          },
+          {
+            "datasource": {
+              "type": "postgres",
+              "uid": "bb5ded42-bd6f-4fed-bd0f-d6b302ba1277"
+            },
+            "editorMode": "builder",
+            "format": "table",
+            "hide": false,
+            "rawSql": "SELECT AVG(quanity_rounds) FROM battles LIMIT 50 ",
+            "refId": "B",
+            "sql": {
+              "columns": [
+                {
+                  "name": "AVG",
+                  "parameters": [
+                    {
+                      "name": "quanity_rounds",
+                      "type": "functionParameter"
+                    }
+                  ],
+                  "type": "function"
+                }
+              ],
+              "groupBy": [
+                {
+                  "property": {
+                    "type": "string"
+                  },
+                  "type": "groupBy"
+                }
+              ],
+              "limit": 50
+            },
+            "table": "battles"
+          }
+        ],
+        "title": "General statistics of battles",
+        "transparent": true,
+        "type": "stat"
+      },
+      {
+        "datasource": {
+          "type": "postgres",
+          "uid": "bb5ded42-bd6f-4fed-bd0f-d6b302ba1277"
+        },
+        "description": "",
+        "fieldConfig": {
+          "defaults": {
+            "color": {
+              "mode": "palette-classic"
+            },
+            "custom": {
+              "axisBorderShow": true,
+              "axisCenteredZero": false,
+              "axisColorMode": "text",
+              "axisLabel": "battles",
+              "axisPlacement": "auto",
+              "barAlignment": 0,
+              "drawStyle": "line",
+              "fillOpacity": 20,
+              "gradientMode": "opacity",
+              "hideFrom": {
+                "legend": false,
+                "tooltip": false,
+                "viz": false
+              },
+              "insertNulls": false,
+              "lineInterpolation": "linear",
+              "lineStyle": {
+                "dash": [
+                  10,
+                  10
+                ],
+                "fill": "dash"
+              },
+              "lineWidth": 2,
+              "pointSize": 5,
+              "scaleDistribution": {
+                "type": "linear"
+              },
+              "showPoints": "auto",
+              "spanNulls": false,
+              "stacking": {
+                "group": "A",
+                "mode": "none"
+              },
+              "thresholdsStyle": {
+                "mode": "off"
+              }
+            },
+            "mappings": [],
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {
+                  "color": "green"
+                }
+              ]
+            }
+          },
+          "overrides": []
+        },
+        "gridPos": {
+          "h": 16,
+          "w": 16,
+          "x": 8,
+          "y": 0
+        },
+        "id": 3,
+        "options": {
+          "legend": {
+            "calcs": [],
+            "displayMode": "list",
+            "placement": "bottom",
+            "showLegend": false
+          },
+          "tooltip": {
+            "mode": "single",
+            "sort": "none"
+          }
+        },
+        "targets": [
+          {
+            "datasource": {
+              "type": "postgres",
+              "uid": "bb5ded42-bd6f-4fed-bd0f-d6b302ba1277"
+            },
+            "editorMode": "code",
+            "format": "table",
+            "rawQuery": true,
+            "rawSql": "SELECT\n    DATE(created_at) AS battle_date,\n    COUNT(*) AS battle_count\nFROM\n    battles\nGROUP BY\n    battle_date\nORDER BY\n    battle_date;",
+            "refId": "A",
+            "sql": {
+              "columns": [
+                {
+                  "parameters": [],
+                  "type": "function"
+                }
+              ],
+              "groupBy": [
+                {
+                  "property": {
+                    "type": "string"
+                  },
+                  "type": "groupBy"
+                }
+              ],
+              "limit": 50
+            }
+          }
+        ],
+        "title": "Battle schedule by day",
+        "transparent": true,
+        "type": "timeseries"
+      },
+      {
+        "datasource": {
+          "type": "postgres",
+          "uid": "bb5ded42-bd6f-4fed-bd0f-d6b302ba1277"
+        },
+        "description": "",
+        "fieldConfig": {
+          "defaults": {
+            "color": {
+              "mode": "thresholds"
+            },
+            "custom": {
+              "axisBorderShow": false,
+              "axisCenteredZero": false,
+              "axisColorMode": "text",
+              "axisGridShow": true,
+              "axisLabel": "wins",
+              "axisPlacement": "auto",
+              "fillOpacity": 100,
+              "gradientMode": "none",
+              "hideFrom": {
+                "legend": false,
+                "tooltip": false,
+                "viz": false
+              },
+              "lineWidth": 0,
+              "scaleDistribution": {
+                "type": "linear"
+              },
+              "thresholdsStyle": {
+                "mode": "off"
+              }
+            },
+            "fieldMinMax": false,
+            "mappings": [],
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {
+                  "color": "semi-dark-green"
+                }
+              ]
+            }
+          },
+          "overrides": []
+        },
+        "gridPos": {
+          "h": 8,
+          "w": 8,
+          "x": 0,
+          "y": 8
+        },
+        "id": 2,
+        "options": {
+          "barRadius": 0.5,
+          "barWidth": 0.6,
+          "fullHighlight": false,
+          "groupWidth": 0.7,
+          "legend": {
+            "calcs": [],
+            "displayMode": "list",
+            "placement": "bottom",
+            "showLegend": false
+          },
+          "orientation": "auto",
+          "showValue": "auto",
+          "stacking": "none",
+          "tooltip": {
+            "mode": "single",
+            "sort": "none"
+          },
+          "xTickLabelRotation": 0,
+          "xTickLabelSpacing": 0
+        },
+        "pluginVersion": "10.2.2",
+        "targets": [
+          {
+            "datasource": {
+              "type": "postgres",
+              "uid": "bb5ded42-bd6f-4fed-bd0f-d6b302ba1277"
+            },
+            "editorMode": "code",
+            "format": "table",
+            "rawQuery": true,
+            "rawSql": "SELECT\n    poke,\n    COUNT(*) AS wins\nFROM\n    (\n        SELECT\n            CASE\n                WHEN select_is_win = TRUE THEN select_poke\n                ELSE opponent_poke\n            END AS poke\n        FROM\n            battles\n    )\nGROUP BY\n    poke\nORDER BY\n    wins DESC,\n    poke ASC\nLIMIT\n    5;",
+            "refId": "A",
+            "sql": {
+              "columns": [
+                {
+                  "parameters": [],
+                  "type": "function"
+                }
+              ],
+              "groupBy": [
+                {
+                  "property": {
+                    "type": "string"
+                  },
+                  "type": "groupBy"
+                }
+              ],
+              "limit": 50
+            },
+            "table": "battles"
+          }
+        ],
+        "title": "TOP-5 Poke by wins",
+        "transparent": true,
+        "type": "barchart"
+      },
+      {
+        "datasource": {
+          "type": "postgres",
+          "uid": "bb5ded42-bd6f-4fed-bd0f-d6b302ba1277"
+        },
+        "description": "",
+        "fieldConfig": {
+          "defaults": {
+            "color": {
+              "mode": "palette-classic"
+            },
+            "custom": {
+              "axisBorderShow": true,
+              "axisCenteredZero": false,
+              "axisColorMode": "text",
+              "axisLabel": "AVG rounds",
+              "axisPlacement": "auto",
+              "barAlignment": 0,
+              "drawStyle": "line",
+              "fillOpacity": 20,
+              "gradientMode": "opacity",
+              "hideFrom": {
+                "legend": false,
+                "tooltip": false,
+                "viz": false
+              },
+              "insertNulls": false,
+              "lineInterpolation": "linear",
+              "lineStyle": {
+                "dash": [
+                  10,
+                  10
+                ],
+                "fill": "dash"
+              },
+              "lineWidth": 2,
+              "pointSize": 5,
+              "scaleDistribution": {
+                "type": "linear"
+              },
+              "showPoints": "auto",
+              "spanNulls": false,
+              "stacking": {
+                "group": "A",
+                "mode": "none"
+              },
+              "thresholdsStyle": {
+                "mode": "off"
+              }
+            },
+            "mappings": [],
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {
+                  "color": "green"
+                }
+              ]
+            }
+          },
+          "overrides": []
+        },
+        "gridPos": {
+          "h": 8,
+          "w": 12,
+          "x": 0,
+          "y": 16
+        },
+        "id": 4,
+        "options": {
+          "legend": {
+            "calcs": [],
+            "displayMode": "list",
+            "placement": "bottom",
+            "showLegend": false
+          },
+          "tooltip": {
+            "mode": "single",
+            "sort": "none"
+          }
+        },
+        "targets": [
+          {
+            "datasource": {
+              "type": "postgres",
+              "uid": "bb5ded42-bd6f-4fed-bd0f-d6b302ba1277"
+            },
+            "editorMode": "code",
+            "format": "table",
+            "rawQuery": true,
+            "rawSql": "SELECT\n    DATE(created_at) AS battle_date,\n    AVG(quanity_rounds) AS avg_rounds\nFROM\n    battles\nGROUP BY\n    battle_date\nORDER BY\n    battle_date;",
+            "refId": "A",
+            "sql": {
+              "columns": [
+                {
+                  "parameters": [],
+                  "type": "function"
+                }
+              ],
+              "groupBy": [
+                {
+                  "property": {
+                    "type": "string"
+                  },
+                  "type": "groupBy"
+                }
+              ],
+              "limit": 50
+            }
+          }
+        ],
+        "title": "Graph of the average number of rounds by day",
+        "transparent": true,
+        "type": "timeseries"
+      },
+      {
+        "datasource": {
+          "type": "postgres",
+          "uid": "bb5ded42-bd6f-4fed-bd0f-d6b302ba1277"
+        },
+        "description": "",
+        "fieldConfig": {
+          "defaults": {
+            "color": {
+              "mode": "palette-classic"
+            },
+            "custom": {
+              "axisBorderShow": true,
+              "axisCenteredZero": false,
+              "axisColorMode": "text",
+              "axisLabel": "SUM rounds",
+              "axisPlacement": "auto",
+              "barAlignment": 0,
+              "drawStyle": "line",
+              "fillOpacity": 20,
+              "gradientMode": "opacity",
+              "hideFrom": {
+                "legend": false,
+                "tooltip": false,
+                "viz": false
+              },
+              "insertNulls": false,
+              "lineInterpolation": "linear",
+              "lineStyle": {
+                "dash": [
+                  10,
+                  10
+                ],
+                "fill": "dash"
+              },
+              "lineWidth": 2,
+              "pointSize": 5,
+              "scaleDistribution": {
+                "type": "linear"
+              },
+              "showPoints": "auto",
+              "spanNulls": false,
+              "stacking": {
+                "group": "A",
+                "mode": "none"
+              },
+              "thresholdsStyle": {
+                "mode": "off"
+              }
+            },
+            "mappings": [],
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {
+                  "color": "green"
+                }
+              ]
+            }
+          },
+          "overrides": []
+        },
+        "gridPos": {
+          "h": 8,
+          "w": 12,
+          "x": 12,
+          "y": 16
+        },
+        "id": 5,
+        "options": {
+          "legend": {
+            "calcs": [],
+            "displayMode": "list",
+            "placement": "bottom",
+            "showLegend": false
+          },
+          "tooltip": {
+            "mode": "single",
+            "sort": "none"
+          }
+        },
+        "targets": [
+          {
+            "datasource": {
+              "type": "postgres",
+              "uid": "bb5ded42-bd6f-4fed-bd0f-d6b302ba1277"
+            },
+            "editorMode": "code",
+            "format": "table",
+            "rawQuery": true,
+            "rawSql": "SELECT\n    DATE(created_at) AS battle_date,\n    SUM(quanity_rounds) AS sum_rounds\nFROM\n    battles\nGROUP BY\n    battle_date\nORDER BY\n    battle_date;",
+            "refId": "A",
+            "sql": {
+              "columns": [
+                {
+                  "parameters": [],
+                  "type": "function"
+                }
+              ],
+              "groupBy": [
+                {
+                  "property": {
+                    "type": "string"
+                  },
+                  "type": "groupBy"
+                }
+              ],
+              "limit": 50
+            }
+          }
+        ],
+        "title": "Graph of the number of rounds by day",
+        "transparent": true,
+        "type": "timeseries"
+      }
+    ],
+    "refresh": "",
+    "schemaVersion": 38,
+    "tags": [],
+    "templating": {
+      "list": []
+    },
+    "time": {
+      "from": "now-14d",
+      "to": "now"
+    },
+    "timepicker": {},
+    "timezone": "",
+    "title": "PokeStats",
+    "uid": "d4e12d9b-96b1-46f7-b9d7-d674efe54811",
+    "version": 3,
+    "weekStart": ""
+  }
