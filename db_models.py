@@ -17,6 +17,17 @@ class Battle(db.Model):
     quanity_rounds = db.Column(db.Integer, nullable=False)
     created_at = db.Column(db.DateTime(timezone=True), nullable=False, default=db.func.now())
 
+    def __init__(self, select_poke, opponent_poke, select_is_win, quanity_rounds, user_id=None, created_at=None):
+        super().__init__()
+        self.select_poke = select_poke,
+        self.opponent_poke = opponent_poke
+        self.select_is_win = select_is_win
+        self.quanity_rounds = quanity_rounds
+        if user_id:
+            self.user_id = user_id
+        if created_at:
+            self.created_at = created_at
+
     def __repr__(self):
         return '<Battle: id=%s, user_id=%s, select_poke=%s, opponent_poke=%s, select_is_win=%s, quanity_rounds=%s, created_at=%s>' \
                % (self.id, self.user_id, self.select_poke, self.opponent_poke, self.select_is_win,

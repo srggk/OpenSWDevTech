@@ -3,6 +3,7 @@ from db_models import User, Battle
 from api import api
 from auth import auth
 from send_email import send_email
+from data_generation import generate_battles
 from flask import Flask, render_template, request, redirect, url_for, session, abort, flash
 from flask_login import current_user, login_required
 import requests
@@ -97,9 +98,11 @@ def battle():
 
                 # save info
                 session['data_battle'] = {'select_poke_id': select_poke_info['id'],
+                                          'select_poke_name': select_poke_info['name'],
                                           'select_poke_hp': select_poke_info['hp'],
                                           'select_poke_attack': select_poke_info['attack'],
                                           'opponent_poke_id': opponent_poke_info['id'],
+                                          'opponent_poke_name': opponent_poke_info['name'],
                                           'opponent_poke_hp': opponent_poke_info['hp'],
                                           'opponent_poke_attack': opponent_poke_info['attack']}
 
@@ -156,8 +159,8 @@ def battle_round():
                 # check if the battle is over 
                 if winner:                    
                     record_battle_result_to_db(user_id=current_user.id if current_user.is_authenticated else None,
-                                               select_poke=session['data_battle']['select_poke_id'],
-                                               opponent_poke=session['data_battle']['opponent_poke_id'],
+                                               select_poke=session['data_battle']['select_poke_name'],
+                                               opponent_poke=session['data_battle']['opponent_poke_name'],
                                                select_is_win=winner == session['data_battle']['select_poke_id'],
                                                quanity_rounds=len(session['data_battle_history']))
 
@@ -217,8 +220,8 @@ def fast_battle():
                 
                 # record result of the battle to db
                 record_battle_result_to_db(user_id=current_user.id if current_user.is_authenticated else None,
-                                           select_poke=session['data_battle']['select_poke_id'],
-                                           opponent_poke=session['data_battle']['opponent_poke_id'],
+                                           select_poke=session['data_battle']['select_poke_name'],
+                                           opponent_poke=session['data_battle']['opponent_poke_name'],
                                            select_is_win=winner == session['data_battle']['select_poke_id'],
                                            quanity_rounds=len(rounds))
                 
@@ -271,4 +274,6 @@ def result_battes():
 if __name__ == '__main__':
     with app.app_context():
         db.create_all()
+        if Battle.query.count() < 1000:
+            generate_battles(1000)
     app.run(host=WEB_IP, port=WEB_PORT, debug=DEBUG)
